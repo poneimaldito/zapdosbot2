@@ -1,6 +1,5 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const axios = require('axios');
-require('dotenv').config();
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
@@ -65,7 +64,12 @@ client.on('messageCreate', async (message) => {
                 .setFooter({ text: 'Dados do Pokémon via Radar' });
 
             await message.channel.send({ embeds: [pokemonEmbed] });
-            await message.channel.send(`Coordenadas para cópia: ${latitude}, ${longitude}`);
+            
+            // Adicionando botão de copiar coordenadas
+            const copyCoordinatesMessage = `**Copie as coordenadas abaixo:**
+\`\`\`${latitude}, ${longitude}\`\`\``;
+            
+            await message.channel.send(copyCoordinatesMessage);
 
         } catch (error) {
             console.error('Erro ao buscar dados da API:', error);
