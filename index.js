@@ -14,12 +14,27 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
     // Verifica se a mensagem foi enviada no canal correto
-    if (message.channel.id !== ALLOWED_CHANNEL_ID) return;
+    if (message.content.startsWith('!pokemon') && message.channel.id !== ALLOWED_CHANNEL_ID) {
+        // Resposta dizendo para ir ao canal correto
+        const replyMessage = await message.channel.send(`Este comando não pode ser executado aqui, vá no chat: <#${ALLOWED_CHANNEL_ID}> para conseguir executar o comando.`);
+
+        // Apaga a mensagem do comando
+        setTimeout(() => {
+            message.delete().catch(console.error);
+        }, 1000); // Apaga a mensagem do comando quase instantaneamente (1 segundo)
+
+        // Apaga a resposta após 30 segundos
+        setTimeout(() => {
+            replyMessage.delete().catch(console.error);
+        }, 30000); // 30 segundos
+
+        return;
+    }
 
     if (message.content.startsWith('!pokemon')) {
         try {
-            // Faz uma requisição para a API de radar
-            const radarResponse = await axios.get('https://api.pokemon.sistemaweb.com.br/radar?lc=us&iv=100');
+            // Faz uma requisição para a API de radar (atualizada para 90% IV)
+            const radarResponse = await axios.get('https://api.pokemon.sistemaweb.com.br/radar?lc=us&iv=90');
             const radarData = radarResponse.data;
 
             // Pega um Pokémon aleatório da lista
@@ -64,7 +79,7 @@ client.on('messageCreate', async (message) => {
                 .setFooter({ text: 'Dados do Pokémon via Radar' });
 
             await message.channel.send({ embeds: [pokemonEmbed] });
-            
+
             // Adicionando botão de copiar coordenadas
             const copyCoordinatesMessage = `**Copie as coordenadas abaixo:**
 \`\`\`${latitude}, ${longitude}\`\`\``;
