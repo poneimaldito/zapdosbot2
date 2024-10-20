@@ -4,11 +4,8 @@ const axios = require('axios');
 // Inicializa o cliente do Discord com as intenções necessárias
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
-// Substitua 'SEU_CANAL_ID' pelo ID do canal onde você quer que o bot envie os dados automaticamente
+// Substitua 'SEU_CANAL_ID' pelo ID do canal onde você quer que o bot responda ao comando
 const ALLOWED_CHANNEL_ID = '1292654075996799026';
-
-// Intervalo em milissegundos para verificar as APIs (ex: 60 segundos)
-const CHECK_INTERVAL = 60000; // 1 minuto
 
 let lastPokemonId = null; // Para armazenar o último Pokémon processado e evitar repetição
 
@@ -16,7 +13,7 @@ client.once('ready', () => {
     console.log('Bot está online!');
 
     // Função para verificar as APIs e enviar o Pokémon
-    const checkForPokemon = async () => {
+    const checkForPokemon = async (message) => {
         try {
             console.log('Verificando APIs para novos Pokémons...');
 
@@ -45,12 +42,14 @@ client.once('ready', () => {
             // Se nenhum Pokémon foi encontrado, retorna
             if (!pokemon) {
                 console.log('Nenhum Pokémon encontrado.');
+                message.reply('Nenhum Pokémon disponível no momento.');
                 return;
             }
 
             // Verifica se o Pokémon encontrado é novo (para evitar repetição)
             if (pokemon.pokemon_id === lastPokemonId) {
                 console.log('Pokémon repetido. Ignorando...');
+                message.reply('O último Pokémon encontrado foi repetido. Tente novamente.');
                 return;
             }
             lastPokemonId = pokemon.pokemon_id;
@@ -92,23 +91,18 @@ client.once('ready', () => {
                 )
                 .setFooter({ text: 'Dados obtidos via Radar Pokémon' });
 
-            // Envia a mensagem no canal específico
-            const channel = await client.channels.fetch(ALLOWED_CHANNEL_ID);
-            if (channel) {
-                console.log(`Enviando dados no canal ${ALLOWED_CHANNEL_ID}`);
-                await channel.send({ embeds: [pokemonEmbed] });
+            // Envia a mensagem no canal onde o comando foi executado
+            await message.channel.send({ embeds: [pokemonEmbed] });
 
-                // Adicionando botão de copiar coordenadas
-                const copyCoordinatesMessage = `**Copie as coordenadas abaixo:**
+            // Adicionando botão de copiar coordenadas
+            const copyCoordinatesMessage = `**Copie as coordenadas abaixo:**
 \`\`\`${latitude}, ${longitude}\`\`\``;
 
-                await channel.send(copyCoordinatesMessage);
-            } else {
-                console.log(`Não foi possível encontrar o canal com ID ${ALLOWED_CHANNEL_ID}`);
-            }
+            await message.channel.send(copyCoordinatesMessage);
 
         } catch (error) {
             console.error('Erro ao buscar dados da API:', error);
+            message.reply('Ocorreu um erro ao buscar os dados. Tente novamente mais tarde.');
         }
     };
 
@@ -116,7 +110,7 @@ client.once('ready', () => {
     client.on('messageCreate', async message => {
         if (message.content === '!pokemon' && message.channel.id === ALLOWED_CHANNEL_ID) {
             console.log('Comando !pokemon recebido.');
-            await checkForPokemon();
+            await checkForPokemon(message);
         }
     });
 });
