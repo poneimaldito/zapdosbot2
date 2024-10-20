@@ -16,8 +16,7 @@ client.on('messageCreate', async (message) => {
     // Verifica se a mensagem foi enviada no canal correto
     if (message.content.startsWith('!pokemon') && message.channel.id !== ALLOWED_CHANNEL_ID) {
         // Resposta dizendo para ir ao canal correto
-const ALLOWED_CHANNEL_ID = '11292654075996799026';
-const replyMessage = await message.channel.send(Este comando não pode ser executado aqui, vá no chat: <#1292654075996799026> para conseguir executar o comando.);
+        const replyMessage = await message.channel.send(`Este comando não pode ser executado aqui, vá no chat: <#${ALLOWED_CHANNEL_ID}> para conseguir executar o comando.`);
 
         // Apaga a mensagem do comando
         setTimeout(() => {
@@ -56,34 +55,34 @@ const replyMessage = await message.channel.send(Este comando não pode ser execu
             const ivPercentage = totalIV.toFixed(2);
 
             // Requisição para a Pokedex API para obter nome e tipo do Pokémon
-            const pokedexResponse = await axios.get(https://sg.portal-pokemon.com/play/pokedex/api/v1?key_word=${pokemonId});
+            const pokedexResponse = await axios.get(`https://sg.portal-pokemon.com/play/pokedex/api/v1?key_word=${pokemonId}`);
             const pokedexData = pokedexResponse.data;
 
             const pokemonName = pokedexData.pokemons[0].pokemon_name;
             const pokemonType = pokedexData.pokemons[0].pokemon_type_name;
 
             // Obtenção da imagem do Pokémon (usando PokéAPI)
-            const pokeApiResponse = await axios.get(https://pokeapi.co/api/v2/pokemon/${pokemonId});
+            const pokeApiResponse = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
             const pokemonImage = pokeApiResponse.data.sprites.front_default;
 
             // Cria o embed com as informações
             const pokemonEmbed = new EmbedBuilder()
                 .setColor('#fffa00')  // Cor definida
-                .setTitle(${pokemonName} (${pokemonType}))
+                .setTitle(`${pokemonName} (${pokemonType})`)
                 .setImage(pokemonImage)  // Adiciona a imagem do Pokémon
                 .addFields(
-                    { name: 'Coordenadas', value: ${latitude}, ${longitude}, inline: false },
-                    { name: 'IV', value: ${ivPercentage}% (ATK: ${attack}/DEF: ${defense}/STA: ${stamina}), inline: false },
-                    { name: 'CP', value: ${cp}, inline: true },
-                    { name: 'Level', value: ${level}, inline: true }
+                    { name: 'Coordenadas', value: `${latitude}, ${longitude}`, inline: false },
+                    { name: 'IV', value: `${ivPercentage}% (ATK: ${attack}/DEF: ${defense}/STA: ${stamina})`, inline: false },
+                    { name: 'CP', value: `${cp}`, inline: true },
+                    { name: 'Level', value: `${level}`, inline: true }
                 )
                 .setFooter({ text: 'Dados do Pokémon via Radar' });
 
             await message.channel.send({ embeds: [pokemonEmbed] });
 
             // Adicionando botão de copiar coordenadas
-            const copyCoordinatesMessage = **Copie as coordenadas abaixo:**
-\\\${latitude}, ${longitude}\\\;
+            const copyCoordinatesMessage = `**Copie as coordenadas abaixo:**
+\`\`\`${latitude}, ${longitude}\`\`\``;
             
             await message.channel.send(copyCoordinatesMessage);
 
