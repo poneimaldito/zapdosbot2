@@ -34,7 +34,7 @@ client.on('messageCreate', async (message) => {
     if (message.content.startsWith('!pokemon')) {
         try {
             // Faz uma requisição para a API de radar (atualizada para 90% IV)
-            const radarResponse = await axios.get('https://api.pokemon.sistemaweb.com.br/radar?lc=us&iv=90');
+            const radarResponse = await axios.get('https://api.pokemon.sistemaweb.com.br/radar?lc=gb&iv=90');
             const radarData = radarResponse.data;
 
             // Pega um Pokémon aleatório da lista
