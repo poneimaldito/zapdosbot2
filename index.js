@@ -2,7 +2,7 @@ const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const axios = require('axios');
 
 // Inicializa o cliente do Discord com as intenções necessárias
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
 // Substitua 'SEU_CANAL_ID' pelo ID do canal onde você quer que o bot envie os dados automaticamente
 const ALLOWED_CHANNEL_ID = '1292654075996799026';
@@ -18,6 +18,8 @@ client.once('ready', () => {
     // Função para verificar as APIs e enviar o Pokémon
     const checkForPokemon = async () => {
         try {
+            console.log('Verificando APIs para novos Pokémons...');
+
             // Primeira API: Radar Pokémon
             const radarResponse = await axios.get('https://api.pokemon.sistemaweb.com.br/radar?lc=us&iv=90');
             const radarData = radarResponse.data;
@@ -41,10 +43,16 @@ client.once('ready', () => {
             }
 
             // Se nenhum Pokémon foi encontrado, retorna
-            if (!pokemon) return;
+            if (!pokemon) {
+                console.log('Nenhum Pokémon encontrado.');
+                return;
+            }
 
             // Verifica se o Pokémon encontrado é novo (para evitar repetição)
-            if (pokemon.pokemon_id === lastPokemonId) return;
+            if (pokemon.pokemon_id === lastPokemonId) {
+                console.log('Pokémon repetido. Ignorando...');
+                return;
+            }
             lastPokemonId = pokemon.pokemon_id;
 
             const pokemonId = pokemon.pokemon_id;
@@ -86,21 +94,31 @@ client.once('ready', () => {
 
             // Envia a mensagem no canal específico
             const channel = await client.channels.fetch(ALLOWED_CHANNEL_ID);
-            await channel.send({ embeds: [pokemonEmbed] });
+            if (channel) {
+                console.log(`Enviando dados no canal ${ALLOWED_CHANNEL_ID}`);
+                await channel.send({ embeds: [pokemonEmbed] });
 
-            // Adicionando botão de copiar coordenadas
-            const copyCoordinatesMessage = `**Copie as coordenadas abaixo:**
+                // Adicionando botão de copiar coordenadas
+                const copyCoordinatesMessage = `**Copie as coordenadas abaixo:**
 \`\`\`${latitude}, ${longitude}\`\`\``;
 
-            await channel.send(copyCoordinatesMessage);
+                await channel.send(copyCoordinatesMessage);
+            } else {
+                console.log(`Não foi possível encontrar o canal com ID ${ALLOWED_CHANNEL_ID}`);
+            }
 
         } catch (error) {
             console.error('Erro ao buscar dados da API:', error);
         }
     };
 
-    // Define um intervalo para verificar as APIs periodicamente
-    setInterval(checkForPokemon, CHECK_INTERVAL);
+    // Listener para o comando !pokemon
+    client.on('messageCreate', async message => {
+        if (message.content === '!pokemon' && message.channel.id === ALLOWED_CHANNEL_ID) {
+            console.log('Comando !pokemon recebido.');
+            await checkForPokemon();
+        }
+    });
 });
 
 // Faz login no bot do Discord
