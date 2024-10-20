@@ -4,7 +4,7 @@ const axios = require('axios');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
 // Substitua 'SEU_CANAL_ID' pelo ID do canal em que você quer que o bot responda
-const ALLOWED_CHANNEL_ID = '11292654075996799026';
+const ALLOWED_CHANNEL_ID = '1292654075996799026';
 
 client.once('ready', () => {
     console.log('Bot está online!');
@@ -16,7 +16,8 @@ client.on('messageCreate', async (message) => {
     // Verifica se a mensagem foi enviada no canal correto
     if (message.content.startsWith('!pokemon') && message.channel.id !== ALLOWED_CHANNEL_ID) {
         // Resposta dizendo para ir ao canal correto
-        const replyMessage = await message.channel.send(Este comando não pode ser executado aqui, vá no chat: <#${ALLOWED_CHANNEL_ID}> para conseguir executar o comando.);
+const ALLOWED_CHANNEL_ID = '11292654075996799026';
+const replyMessage = await message.channel.send(Este comando não pode ser executado aqui, vá no chat: <#1292654075996799026> para conseguir executar o comando.);
 
         // Apaga a mensagem do comando
         setTimeout(() => {
