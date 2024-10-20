@@ -12,39 +12,25 @@ let lastPokemonId = null; // Para armazenar o último Pokémon processado e evit
 client.once('ready', () => {
     console.log('Bot está online!');
 
-    // Função para verificar as APIs e enviar o Pokémon
+    // Função para verificar a API e enviar o Pokémon
     const checkForPokemon = async (message) => {
         try {
-            console.log('Verificando APIs para novos Pokémons...');
+            console.log('Verificando API para novos Pokémons...');
 
-            // Primeira API: Radar Pokémon
-            const radarResponse = await axios.get('https://api.pokemon.sistemaweb.com.br/radar?lc=us&iv=90');
+            // API: Radar Pokémon (somente a URL fornecida)
+            const radarResponse = await axios.get('https://api.pokemon.sistemaweb.com.br/radar?lc=gb&iv=90');
             const radarData = radarResponse.data;
-            
-            // Segunda API: Verifica se há Pokémon disponível
-            let pokemon = null;
 
-            if (radarData.pokemons && radarData.pokemons.length > 0) {
-                const randomIndex = Math.floor(Math.random() * radarData.pokemons.length);
-                pokemon = radarData.pokemons[randomIndex];
-            }
-
-            // Caso a primeira API não retorne resultados, tenta a segunda API
-            if (!pokemon) {
-                const radarResponse2 = await axios.get('https://api.pokemon.sistemaweb.com.br/radar?lc=global&iv=90');
-                const radarData2 = radarResponse2.data;
-                if (radarData2.pokemons && radarData2.pokemons.length > 0) {
-                    const randomIndex2 = Math.floor(Math.random() * radarData2.pokemons.length);
-                    pokemon = radarData2.pokemons[randomIndex2];
-                }
-            }
-
-            // Se nenhum Pokémon foi encontrado, retorna
-            if (!pokemon) {
+            // Verifica se há Pokémon disponível
+            if (!radarData.pokemons || radarData.pokemons.length === 0) {
                 console.log('Nenhum Pokémon encontrado.');
                 message.reply('Nenhum Pokémon disponível no momento.');
                 return;
             }
+
+            // Seleciona um Pokémon aleatório da lista
+            const randomIndex = Math.floor(Math.random() * radarData.pokemons.length);
+            const pokemon = radarData.pokemons[randomIndex];
 
             // Verifica se o Pokémon encontrado é novo (para evitar repetição)
             if (pokemon.pokemon_id === lastPokemonId) {
@@ -67,21 +53,15 @@ client.once('ready', () => {
             const totalIV = ((attack + defense + stamina) / 45) * 100;
             const ivPercentage = totalIV.toFixed(2);
 
-            // Requisição para a Pokedex API para obter nome e tipo do Pokémon
-            const pokedexResponse = await axios.get(`https://sg.portal-pokemon.com/play/pokedex/api/v1?key_word=${pokemonId}`);
-            const pokedexData = pokedexResponse.data;
-
-            const pokemonName = pokedexData.pokemons[0].pokemon_name;
-            const pokemonType = pokedexData.pokemons[0].pokemon_type_name;
-
-            // Obtenção da imagem do Pokémon (usando PokéAPI)
+            // Requisição para a PokéAPI para obter nome e imagem do Pokémon
             const pokeApiResponse = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
             const pokemonImage = pokeApiResponse.data.sprites.front_default;
+            const pokemonName = pokeApiResponse.data.name;
 
             // Cria o embed com as informações visuais e detalhadas
             const pokemonEmbed = new EmbedBuilder()
                 .setColor('#fffa00')  // Cor amarela para combinar com Pokémon
-                .setTitle(`${pokemonName} (${pokemonType})`) // Nome e tipo do Pokémon
+                .setTitle(`${pokemonName.charAt(0).toUpperCase() + pokemonName.slice(1)}`) // Nome do Pokémon
                 .setImage(pokemonImage)  // Imagem do Pokémon
                 .addFields(
                     { name: 'Coordenadas', value: `[${latitude}, ${longitude}](https://maps.google.com/?q=${latitude},${longitude})`, inline: false },
